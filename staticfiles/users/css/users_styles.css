@@ -1,0 +1,59 @@
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f8f9fa;
+    padding: 30px;
+}
+
+nav {
+    background: #007bff;
+    padding: 10px 20px;
+    color: white;
+}
+
+nav a {
+    color: white;
+    margin-right: 15px;
+    text-decoration: none;
+    font-weight: bold;
+}
+
+.content {
+    background: #fff;
+    padding: 20px;
+    border-radius: 8px;
+}
+
+/* List of submissions */
+.submission-list {
+    list-style: none;
+    padding-left: 0;
+    margin-top: 20px;
+}
+
+.submission-item {
+    border: 1px solid #ddd;
+    border-left: 4px solid #007bff;
+    padding: 15px;
+    margin-bottom: 15px;
+    background: #fefefe;
+    border-radius: 4px;
+}
+
+.submission-item .title {
+    font-size: 18px;
+    font-weight: bold;
+    margin-bottom: 5px;
+}
+
+/* Status tags */
+.status {
+    font-weight: bold;
+}
+
+.status-ac {
+    color: green;
+}
+
+.status-wrong {
+    color: red;
+}

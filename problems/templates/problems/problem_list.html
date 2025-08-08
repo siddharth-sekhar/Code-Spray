@@ -1,0 +1,94 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Problems{% endblock %}
+{% block content %}
+<link rel="stylesheet" href="{% static 'problems/css/problem_list.css' %}">
+
+<!-- Fixed Navigation -->
+<div class="fixed-nav">
+    <div class="nav-left">
+        <a href="{% url 'dashboard' %}" class="nav-link">Dashboard</a>
+        <a href="{% url 'problem_list' %}" class="nav-link">Problems</a>
+    </div>
+    <div class="user-dropdown">
+        <button class="user-dropdown-btn" onclick="toggleUserDropdown()">
+            {{ user.username }} ▼
+        </button>
+        <div class="user-dropdown-content" id="userDropdown">
+            <form action="{% url 'logout' %}" method="post" style="margin: 0;">
+                {% csrf_token %}
+                <button type="submit" class="logout-btn">Logout</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="problem-list-container">
+    <div class="problem-list-header">
+        <h1 class="header-title">Problems</h1>
+        <p class="header-subtitle">Choose a problem to solve and improve your coding skills</p>
+    </div>
+
+    <div class="filters-section">
+        <h2 class="filter-title">Filter by Topic</h2>
+        <div class="topic-filters">
+            <a href="{% url 'problem_list' %}" class="topic-filter {% if not selected_topic %}active{% endif %}">
+                All Topics
+            </a>
+            {% for topic in topics %}
+                <a href="{% url 'problem_list' %}?topic={{ topic.name }}" 
+                   class="topic-filter {% if topic.name == selected_topic %}active{% endif %}">
+                    {{ topic.name }}
+                </a>
+            {% endfor %}
+        </div>
+    </div>
+
+    <div class="problems-grid">
+        {% for problem in problems %}
+            <a href="{% url 'problem_detail' problem.id %}" class="problem-card">
+                <div class="problem-card-header">
+                    <div>
+                        <h3 class="problem-title">{{ problem.title }}</h3>
+                        <div class="problem-topic">{{ problem.topic.name }}</div>
+                    </div>
+                </div>
+                
+                <div class="problem-description">
+                    {{ problem.description|truncatewords:30 }}
+                </div>
+                
+                <div class="problem-meta">
+                    <span>Problem #{{ problem.id }}</span>
+                    <span class="problem-difficulty difficulty-easy">Easy</span>
+                </div>
+            </a>
+        {% empty %}
+            <div class="empty-state">
+                <h3>No Problems Found</h3>
+                <p>No problems are available for the selected topic. Please try a different filter or check back later.</p>
+            </div>
+        {% endfor %}
+    </div>
+</div>
+
+<script>
+// User dropdown functionality
+function toggleUserDropdown() {
+    const dropdown = document.getElementById('userDropdown');
+    dropdown.classList.toggle('show');
+}
+
+// Close dropdown when clicking outside
+window.onclick = function(event) {
+    if (!event.target.matches('.user-dropdown-btn')) {
+        const dropdowns = document.getElementsByClassName('user-dropdown-content');
+        for (let dropdown of dropdowns) {
+            if (dropdown.classList.contains('show')) {
+                dropdown.classList.remove('show');
+            }
+        }
+    }
+}
+</script>
+{% endblock %}

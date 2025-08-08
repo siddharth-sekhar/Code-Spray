@@ -1,0 +1,32 @@
+<!-- templates/base.html -->
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}Online Judge{% endblock %}</title>
+  <style>
+    /* Minimal base styles that won't conflict with our custom designs */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      line-height: 1.6;
+    }
+    
+    .content {
+      min-height: 100vh;
+    }
+  </style>
+</head>
+<body>
+  <div class="content">
+    {% block content %}{% endblock %}
+  </div>
+</body>
+</html>

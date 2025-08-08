@@ -1,0 +1,53 @@
+body {
+    background-color: #1a1a1a;
+    color: #e0e0e0;
+    font-family: Arial, sans-serif;
+}
+nav {
+    background-color: #333;
+}
+nav a, .link-button {
+    color: #e0e0e0;
+    text-decoration: none;
+    margin-right: 15px;
+}
+nav a:hover, .link-button:hover {
+    color: #00ccff;
+}
+.content {
+    background-color: #2d2d2d;
+    padding: 20px;
+    border-radius: 5px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+}
+form {
+    max-width: 400px;
+    margin: 20px auto;
+}
+label {
+    display: block;
+    margin-bottom: 5px;
+}
+input[type="text"], input[type="password"], button {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 10px;
+    border: 1px solid #444;
+    background-color: #333;
+    color: #e0e0e0;
+    border-radius: 4px;
+}
+button {
+    background-color: #00ccff;
+    color: #1a1a1a;
+    cursor: pointer;
+}
+button:hover {
+    background-color: #00b3e6;
+}
+a {
+    color: #00ccff;
+}
+a:hover {
+    color: #00b3e6;
+}

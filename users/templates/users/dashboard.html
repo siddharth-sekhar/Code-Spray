@@ -1,0 +1,132 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Dashboard - Online Judge{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" href="{% static 'users/css/dashboard.css' %}">
+
+<div class="dashboard-container">
+    <div class="dashboard-header">
+        <div class="user-welcome">
+            <h1>Welcome, {{ user.username }}!</h1>
+            <div class="user-dropdown">
+                <button class="user-dropdown-btn" onclick="toggleUserDropdown()">
+                    {{ user.username }} ▼
+                </button>
+                <div class="user-dropdown-content" id="userDropdown">
+                    <form action="{% url 'logout' %}" method="post" style="margin: 0;">
+                        {% csrf_token %}
+                        <button type="submit" class="logout-btn">Logout</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+        
+        <div class="user-stats">
+            <div class="stat-card">
+                <div class="stat-number">{{ problems_solved }}/{{ total_problems }}</div>
+                <div class="stat-label">Problems Solved</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">{{ topics.count }}</div>
+                <div class="stat-label">Topics Available</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="dashboard-content">
+        <div class="topics-section">
+            <h2 class="section-title">Topics</h2>
+            {% for topic in topics %}
+                <div class="topic-item">
+                    <div class="topic-header" onclick="toggleTopic('topic-{{ topic.id }}')">
+                        <span class="topic-name">{{ topic.name }}</span>
+                        <span class="topic-count">{{ topic.problem_set.count }}</span>
+                    </div>
+                    <div class="topic-problems" id="topic-{{ topic.id }}">
+                        {% for problem in topic.problem_set.all %}
+                            <a href="{% url 'problem_detail' problem.id %}" class="problem-link">
+                                {{ problem.title }}
+                            </a>
+                        {% empty %}
+                            <div class="empty-state">
+                                <p>No problems in this topic yet.</p>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            {% empty %}
+                <div class="empty-state">
+                    <h3>No Topics Available</h3>
+                    <p>Topics will appear here once they are added to the system.</p>
+                </div>
+            {% endfor %}
+        </div>
+
+        <div class="submissions-section">
+            <h2 class="section-title">Recent Submissions</h2>
+            {% if submissions %}
+                {% for sub in submissions %}
+                    <div class="submission-item">
+                        <div class="submission-header">
+                            <a href="{% url 'problem_detail' sub.problem.id %}" class="problem-title">
+                                {{ sub.problem.title }}
+                            </a>
+                            <span class="submission-status {% if sub.status == 'AC' %}status-ac{% else %}status-wrong{% endif %}">
+                                {{ sub.status }}
+                            </span>
+                        </div>
+                        <div class="submission-details">
+                            <div class="submission-detail">
+                                <strong>Language:</strong> {{ sub.language|title }}
+                            </div>
+                            <div class="submission-detail">
+                                <strong>Submitted:</strong> {{ sub.submitted_at|date:"M d, Y H:i" }}
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <div class="empty-state">
+                    <h3>No Submissions Yet</h3>
+                    <p>Start solving problems to see your submission history here!</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<script>
+function toggleTopic(topicId) {
+    const topicProblems = document.getElementById(topicId);
+    const isActive = topicProblems.classList.contains('active');
+    
+    // Close all other topics
+    document.querySelectorAll('.topic-problems').forEach(el => {
+        el.classList.remove('active');
+    });
+    
+    // Toggle current topic
+    if (!isActive) {
+        topicProblems.classList.add('active');
+    }
+}
+
+function toggleUserDropdown() {
+    const dropdown = document.getElementById('userDropdown');
+    dropdown.classList.toggle('show');
+}
+
+// Close dropdown when clicking outside
+window.onclick = function(event) {
+    if (!event.target.matches('.user-dropdown-btn')) {
+        const dropdowns = document.getElementsByClassName('user-dropdown-content');
+        for (let dropdown of dropdowns) {
+            if (dropdown.classList.contains('show')) {
+                dropdown.classList.remove('show');
+            }
+        }
+    }
+}
+</script>
+{% endblock %}
