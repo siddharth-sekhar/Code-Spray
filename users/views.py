@@ -1,11 +1,12 @@
 # users/views.py
 
 from django.shortcuts import render, redirect
-from django.contrib.auth import authenticate, login
+from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse
 from django.views.decorators.cache import never_cache
+from django.views.decorators.http import require_http_methods
 from problems.models import Submission, Problem, Topic
 
 # Use @never_cache to prevent caching
@@ -13,15 +14,21 @@ from problems.models import Submission, Problem, Topic
 def user_login(request):
     if request.user.is_authenticated:
         return redirect('dashboard')
+    
+    # Get the next parameter for redirect after login
+    next_url = request.GET.get('next') or request.POST.get('next', 'dashboard')
+    
     if request.method == 'POST':
         form = AuthenticationForm(request=request, data=request.POST)
         if form.is_valid():
             user = form.get_user()
             login(request, user)
-            return redirect('dashboard')
+            # Redirect to next_url or dashboard
+            return redirect(next_url if next_url != 'dashboard' else 'dashboard')
     else:
         form = AuthenticationForm()
-    return render(request, 'users/login.html', {'form': form}, status=200)
+    
+    return render(request, 'users/login.html', {'form': form, 'next': next_url}, status=200)
 
 # ✅ SIGNUP view
 def signup_view(request):
@@ -37,6 +44,7 @@ def signup_view(request):
 
 # ✅ DASHBOARD view
 @login_required
+@never_cache
 def dashboard(request):
     submissions = Submission.objects.filter(user=request.user)
     problems_solved = (
@@ -61,3 +69,12 @@ def dashboard(request):
         'total_problems': total_problems,
         'topics': topics,
     })
+
+# Custom logout view with better session management
+@require_http_methods(["POST"])
+@never_cache
+def user_logout(request):
+    logout(request)
+    # Clear any session data
+    request.session.flush()
+    return redirect('login')

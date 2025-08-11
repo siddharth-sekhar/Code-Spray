@@ -23,5 +23,5 @@ urlpatterns = [
     path('users/', include('users.urls')),               # Login, Dashboard
     path('problems/', include('problems.urls')),         # Problem list & detail
 
-    path('', RedirectView.as_view(url='users/login/')),  # Root redirects to login
+    path('', RedirectView.as_view(url='users/dashboard/')),  # Root redirects to dashboard
 ]

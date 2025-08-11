@@ -128,5 +128,17 @@ window.onclick = function(event) {
         }
     }
 }
+
+// Prevent browser back button from going to cached pages
+window.addEventListener('pageshow', function(event) {
+    if (event.persisted) {
+        window.location.reload();
+    }
+});
+
+// Clear any cached data when page loads
+if (window.performance && window.performance.navigation.type === window.performance.navigation.TYPE_BACK_FORWARD) {
+    window.location.reload();
+}
 </script>
 {% endblock %}

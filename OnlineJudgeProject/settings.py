@@ -137,5 +137,13 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 LOGIN_URL = 'login'  # Redirect to login if user not authenticated
+
+# Session settings for better security
+SESSION_COOKIE_AGE = 3600  # 1 hour
+SESSION_EXPIRE_AT_BROWSER_CLOSE = True
+SESSION_SAVE_EVERY_REQUEST = True
+
+# Cache control settings
+CACHE_CONTROL = 'no-store, no-cache, must-revalidate, max-age=0'
 LOGIN_REDIRECT_URL = 'dashboard'  # After login go to dashboard
 LOGOUT_REDIRECT_URL = 'login'  # After logout go to login page
