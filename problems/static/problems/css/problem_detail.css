@@ -136,7 +136,7 @@ body {
     display: grid;
     grid-template-columns: 1fr 1.2fr; /* Give more space to code editor */
     gap: 20px;
-    height: calc(100vh - 200px);
+    height: calc(100vh - 120px); /* Adjusted for nav and padding */
 }
 
 /* Left Side - Problem Description */
@@ -146,7 +146,7 @@ body {
     padding: 30px;
     border: 1px solid #2d2d2d;
     overflow-y: auto;
-    max-height: calc(100vh - 200px);
+    max-height: calc(100vh - 120px); /* Scrollable independently */
 }
 
 .section {
@@ -245,7 +245,7 @@ body {
     border: 1px solid #2d2d2d;
     display: flex;
     flex-direction: column;
-    height: calc(100vh - 200px);
+    height: 100%; /* Use full height of parent */
 }
 
 .editor-header {
@@ -271,8 +271,7 @@ body {
 }
 
 .code-editor {
-    flex: 1;
-    min-height: 600px; /* Much larger minimum height */
+    height: 600px; /* Fixed, larger height */
     background: #0a0a0a;
     border: 1px solid #404040;
     border-radius: 8px;
@@ -280,10 +279,10 @@ body {
     font-family: 'Courier New', monospace;
     font-size: 14px;
     color: #e0e0e0;
-    resize: vertical;
     margin-bottom: 20px;
     line-height: 1.5;
-    height: calc(100vh - 400px); /* Dynamic height based on viewport */
+    width: 100%; /* Ensure full width */
+    overflow-y: auto; /* Scrollable editor */
 }
 
 .code-editor:focus {
@@ -335,9 +334,21 @@ body {
     border-radius: 8px;
     padding: 20px;
     border: 1px solid #404040;
-    max-height: 250px; /* Reduced to give more space to code editor */
+    max-height: 250px; /* Fixed height */
     overflow-y: auto;
-    flex-shrink: 0;
+    flex-shrink: 0; /* Prevent shrinking */
+}
+
+/* Output Section */
+.output-section {
+    background: #1a1a1a;
+    border-radius: 8px;
+    padding: 20px;
+    border: 1px solid #404040;
+    margin-top: 20px;
+    flex-shrink: 0; /* Prevent shrinking */
+    max-height: 200px; /* Fixed height */
+    overflow-y: auto;
 }
 
 .test-cases-title {
@@ -402,15 +413,6 @@ body {
 }
 
 /* Output Section */
-.output-section {
-    background: #1a1a1a;
-    border-radius: 8px;
-    padding: 20px;
-    border: 1px solid #404040;
-    margin-top: 20px;
-    flex-shrink: 0;
-}
-
 .output-title {
     font-weight: 600;
     color: #ffffff;
@@ -427,8 +429,9 @@ body {
     color: #e0e0e0;
     white-space: pre-wrap;
     border: 1px solid #404040;
-    max-height: 200px;
+    max-height: 300px;
     overflow-y: auto;
+    line-height: 1.4;
 }
 
 .output-success {
@@ -443,7 +446,7 @@ body {
 @media (max-width: 1024px) {
     .main-content {
         grid-template-columns: 1fr;
-        height: auto;
+        height: auto; /* Allow natural height */
     }
     
     .problem-container {
@@ -452,11 +455,11 @@ body {
     }
     
     .code-editor-section {
-        height: auto;
+        height: auto; /* Allow natural height */
     }
     
     .code-editor {
-        height: 500px; /* Fixed height on mobile */
+        height: 500px; /* Slightly smaller fixed height for mobile */
     }
     
     .example-content {
@@ -503,4 +506,33 @@ body {
 
 ::-webkit-scrollbar-thumb:hover {
     background: #00b894;
+}
+
+/* Button loading states */
+.btn:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+    transform: none !important;
+}
+
+.btn:disabled:hover {
+    background: inherit;
+    transform: none !important;
+    box-shadow: none !important;
+}
+
+/* Output section animations */
+.output-section {
+    animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }

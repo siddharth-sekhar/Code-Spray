@@ -68,7 +68,7 @@ def compile_and_run(code: str, lang: str, input_data: str):
     :return: Tuple of (stdout, stderr)
     """
     if lang not in LANGUAGE_CONFIG:
-        return '', f"❌ Language '{lang}' not supported."
+        return '', f" Language '{lang}' not supported."
 
     config = LANGUAGE_CONFIG[lang].copy()
 
@@ -101,18 +101,31 @@ def compile_and_run(code: str, lang: str, input_data: str):
                 )
                 if compile_result.returncode != 0:
                     stderr_output = compile_result.stderr.decode('utf-8', errors='ignore')
-                    return '', f"💥 Compilation Error:\n{stderr_output}"
+                    return '', f" Compilation Error:\n{stderr_output}"
             except FileNotFoundError:
-                return '', f"❌ Compiler not found. Please install {lang.upper()} compiler."
+                return '', f" Compiler not found. Please install {lang.upper()} compiler."
             except subprocess.TimeoutExpired:
-                return '', "⏱️ Compilation Time Limit Exceeded"
+                return '', "⏱ Compilation Time Limit Exceeded"
 
         # ---------------------
         # 2. Execution Phase
         # ---------------------
         try:
+            # For Windows, check if executable exists
+            if platform.system() == 'Windows' and 'exe_file' in config:
+                exe_path = os.path.join(tmpdir, config['exe_file'])
+                if not os.path.exists(exe_path):
+                    return '', f" Executable not found at {exe_path}. Compilation may have failed."
+            
+            # Update run command to use full path for Windows executables
+            if platform.system() == 'Windows' and 'exe_file' in config:
+                exe_path = os.path.join(tmpdir, config['exe_file'])
+                run_cmd = [exe_path]
+            else:
+                run_cmd = config['run_cmd']
+            
             run_result = subprocess.run(
-                config['run_cmd'],
+                run_cmd,
                 cwd=tmpdir,
                 input=input_data.encode('utf-8'),
                 stdout=subprocess.PIPE,
@@ -125,17 +138,17 @@ def compile_and_run(code: str, lang: str, input_data: str):
             
             # If there's stderr but no stdout, it might be an error
             if stderr and not stdout:
-                return '', f"⚠️ Runtime Error:\n{stderr}"
+                return '', f" Runtime Error:\n{stderr}"
             
             return stdout, stderr
 
         except subprocess.TimeoutExpired:
             return '', "⏱️ Time Limit Exceeded"
-        except FileNotFoundError:
-            return '', f"❌ Executable not found. Compilation may have failed."
+        except FileNotFoundError as e:
+            return '', f" File not found error: {str(e)}"
 
     except Exception as e:
-        return '', f"⚠️ Unexpected error: {str(e)}"
+        return '', f" Unexpected error: {str(e)}"
 
     finally:
         try:

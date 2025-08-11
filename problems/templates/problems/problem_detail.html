@@ -101,7 +101,7 @@
                 </select>
             </div>
 
-            <form method="post" id="codeForm">
+            <form method="post" id="codeForm" onsubmit="submitSolution(event)">
                 {% csrf_token %}
                 <input type="hidden" name="language" id="languageInput">
                 <textarea name="code" class="code-editor" id="codeEditor" placeholder="// Write your code here..."></textarea>
@@ -211,8 +211,8 @@ document.getElementById('languageSelector').addEventListener('change', function(
 document.getElementById('languageInput').value = document.getElementById('languageSelector').value;
 document.getElementById('codeEditor').value = codeTemplates['cpp'];
 
-// Run code function (for sample tests)
-function runCode() {
+// Run code function (for sample tests) - AJAX version
+async function runCode() {
     const code = document.getElementById('codeEditor').value;
     const language = document.getElementById('languageSelector').value;
     
@@ -221,42 +221,159 @@ function runCode() {
         return;
     }
     
-    // Update form and submit for sample tests
-    document.getElementById('languageInput').value = language;
+    // Show loading state
+    const runButton = document.querySelector('.btn-run');
+    const originalText = runButton.textContent;
+    runButton.textContent = 'Running...';
+    runButton.disabled = true;
     
-    // Create a temporary form for running sample tests
-    const form = document.createElement('form');
-    form.method = 'POST';
-    form.action = window.location.href;
+    // Clear previous output
+    clearOutput();
     
-    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
-    const csrfInput = document.createElement('input');
-    csrfInput.type = 'hidden';
-    csrfInput.name = 'csrfmiddlewaretoken';
-    csrfInput.value = csrfToken;
+    try {
+        const formData = new FormData();
+        formData.append('code', code);
+        formData.append('language', language);
+        formData.append('run_sample', 'true');
+        formData.append('csrfmiddlewaretoken', document.querySelector('[name=csrfmiddlewaretoken]').value);
+        
+        const response = await fetch(window.location.href, {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        });
+        
+        const result = await response.json();
+        
+        // Display the result
+        displayOutput(result.output || '', result.error || '');
+        
+    } catch (error) {
+        console.error('Error running code:', error);
+        let errorMessage = 'An error occurred while running the code. Please try again.';
+        
+        // Try to get more specific error information
+        if (error.name === 'TypeError' && error.message.includes('JSON')) {
+            errorMessage = 'Invalid response from server. Please try again.';
+        } else if (error.message) {
+            errorMessage = `Error: ${error.message}`;
+        }
+        
+        displayOutput('', errorMessage);
+    } finally {
+        // Restore button state
+        runButton.textContent = originalText;
+        runButton.disabled = false;
+    }
+}
+
+// Function to clear previous output
+function clearOutput() {
+    const outputSection = document.querySelector('.output-section');
+    if (outputSection) {
+        outputSection.remove();
+    }
+}
+
+// Function to display output
+function displayOutput(output, error) {
+    const codeEditorSection = document.querySelector('.code-editor-section');
     
-    const codeInput = document.createElement('input');
-    codeInput.type = 'hidden';
-    codeInput.name = 'code';
-    codeInput.value = code;
+    // Remove existing output section if any
+    const existingOutput = document.querySelector('.output-section');
+    if (existingOutput) {
+        existingOutput.remove();
+    }
     
-    const langInput = document.createElement('input');
-    langInput.type = 'hidden';
-    langInput.name = 'language';
-    langInput.value = language;
+    // Create new output section
+    const outputSection = document.createElement('div');
+    outputSection.className = 'output-section';
     
-    const runInput = document.createElement('input');
-    runInput.type = 'hidden';
-    runInput.name = 'run_sample';
-    runInput.value = 'true';
+    const outputTitle = document.createElement('h3');
+    outputTitle.className = 'output-title';
+    outputTitle.textContent = 'Execution Result';
     
-    form.appendChild(csrfInput);
-    form.appendChild(codeInput);
-    form.appendChild(langInput);
-    form.appendChild(runInput);
+    const outputContent = document.createElement('div');
+    outputContent.className = `output-content ${error ? 'output-error' : 'output-success'}`;
+    outputContent.textContent = error || output;
     
-    document.body.appendChild(form);
-    form.submit();
+    outputSection.appendChild(outputTitle);
+    outputSection.appendChild(outputContent);
+    
+    // Insert after the form
+    const form = document.querySelector('#codeForm');
+    form.parentNode.insertBefore(outputSection, form.nextSibling);
+    
+    // Scroll to output
+    outputSection.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+// Function to handle solution submission
+async function submitSolution(event) {
+    event.preventDefault();
+    
+    const code = document.getElementById('codeEditor').value;
+    const language = document.getElementById('languageSelector').value;
+    
+    if (!code.trim()) {
+        alert('Please write some code first!');
+        return;
+    }
+    
+    // Show loading state
+    const submitButton = document.querySelector('.btn-submit');
+    const originalText = submitButton.textContent;
+    submitButton.textContent = 'Submitting...';
+    submitButton.disabled = true;
+    
+    // Clear previous output
+    clearOutput();
+    
+    try {
+        const formData = new FormData();
+        formData.append('code', code);
+        formData.append('language', language);
+        formData.append('csrfmiddlewaretoken', document.querySelector('[name=csrfmiddlewaretoken]').value);
+        
+        const response = await fetch(window.location.href, {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        });
+        
+        const result = await response.json();
+        
+        // Display the result
+        displayOutput(result.output || '', result.error || '');
+        
+        // Show success message if all tests passed
+        if (result.status === 'Accepted') {
+            setTimeout(() => {
+                alert('🎉 Congratulations! Your solution has been accepted!');
+            }, 500);
+        }
+        
+    } catch (error) {
+        console.error('Error submitting solution:', error);
+        let errorMessage = 'An error occurred while submitting the solution. Please try again.';
+        
+        // Try to get more specific error information
+        if (error.name === 'TypeError' && error.message.includes('JSON')) {
+            errorMessage = 'Invalid response from server. Please try again.';
+        } else if (error.message) {
+            errorMessage = `Error: ${error.message}`;
+        }
+        
+        displayOutput('', errorMessage);
+    } finally {
+        // Restore button state
+        submitButton.textContent = originalText;
+        submitButton.disabled = false;
+    }
 }
 
 // User dropdown functionality
@@ -276,14 +393,5 @@ window.onclick = function(event) {
         }
     }
 }
-
-// Auto-resize textarea
-document.getElementById('codeEditor').addEventListener('input', function() {
-    this.style.height = 'auto';
-    this.style.height = Math.max(this.scrollHeight, 600) + 'px';
-});
-
-// Set initial height
-document.getElementById('codeEditor').style.height = '600px';
 </script>
 {% endblock %}
