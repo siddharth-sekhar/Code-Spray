@@ -1,0 +1,17 @@
+services:
+  - type: web
+    name: online-judge-project
+    env: python
+    plan: free
+    buildCommand: "./build.sh"
+    startCommand: "gunicorn OnlineJudgeProject.wsgi:application"
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.0
+      - key: DEBUG
+        value: false
+      - key: SECRET_KEY
+        generateValue: true
+      - key: ALLOWED_HOSTS
+        value: ".onrender.com"
+    healthCheckPath: /

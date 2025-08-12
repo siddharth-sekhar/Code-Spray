@@ -17,7 +17,14 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 from django.views.generic import RedirectView
+from django.http import HttpResponse
 from users import views as user_views
+
+def health_check(request):
+    return HttpResponse("OK", status=200)
+
+def root_view(request):
+    return HttpResponse("Online Judge Project is running!", status=200)
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -28,5 +35,6 @@ urlpatterns = [
     path('login/', user_views.user_login, name='login_root'),
     path('dashboard/', user_views.dashboard, name='dashboard_root'),
 
-    path('', RedirectView.as_view(url='users/dashboard/')),  # Root redirects to dashboard
+    path('health/', health_check, name='health_check'),  # Health check endpoint
+    path('', root_view, name='root'),  # Simple root view for debugging
 ]
