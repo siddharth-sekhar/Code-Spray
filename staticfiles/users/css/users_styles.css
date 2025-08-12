@@ -1,13 +1,15 @@
 body {
     font-family: Arial, sans-serif;
-    background-color: #f8f9fa;
+    background-color: #101416;
     padding: 30px;
+    color: #ffffff;
 }
 
 nav {
-    background: #007bff;
+    background: #1a1a1a;
     padding: 10px 20px;
     color: white;
+    border-bottom: 1px solid #2d2d2d;
 }
 
 nav a {
@@ -15,12 +17,19 @@ nav a {
     margin-right: 15px;
     text-decoration: none;
     font-weight: bold;
+    transition: color 0.3s ease;
+}
+
+nav a:hover {
+    color: #4f46e5;
 }
 
 .content {
-    background: #fff;
+    background: #1a1a1a;
     padding: 20px;
     border-radius: 8px;
+    border: 1px solid #2d2d2d;
+    color: #ffffff;
 }
 
 /* List of submissions */
@@ -31,18 +40,25 @@ nav a {
 }
 
 .submission-item {
-    border: 1px solid #ddd;
-    border-left: 4px solid #007bff;
+    border: 1px solid #404040;
+    border-left: 4px solid #4f46e5;
     padding: 15px;
     margin-bottom: 15px;
-    background: #fefefe;
+    background: #2d2d2d;
     border-radius: 4px;
+    transition: all 0.3s ease;
+}
+
+.submission-item:hover {
+    border-color: #00b894;
+    transform: translateY(-2px);
 }
 
 .submission-item .title {
     font-size: 18px;
     font-weight: bold;
     margin-bottom: 5px;
+    color: #ffffff;
 }
 
 /* Status tags */
@@ -51,9 +67,9 @@ nav a {
 }
 
 .status-ac {
-    color: green;
+    color: #00b894;
 }
 
 .status-wrong {
-    color: red;
+    color: #e74c3c;
 }
