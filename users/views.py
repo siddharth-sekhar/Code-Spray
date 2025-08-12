@@ -13,14 +13,12 @@ from functools import wraps
 from problems.models import Submission, Problem, Topic
 import time
 
-# Custom decorator to check session validity
 def session_valid_required(view_func):
     @wraps(view_func)
     def _wrapped_view(request, *args, **kwargs):
         if not request.user.is_authenticated:
-            return redirect('login_root')  # Use root-level login URL
+            return redirect('login_root')  
         
-        # Check session validity
         last_activity = request.session.get('last_activity', 0)
         if time.time() - last_activity > 3600:  # 1 hour
             logout(request)
@@ -72,7 +70,7 @@ def user_login(request):
     
     return render(request, 'users/login.html', {'form': form, 'next': next_url}, status=200)
 
-# ✅ SIGNUP view
+
 def signup_view(request):
     if request.method == 'POST':
         form = UserCreationForm(request.POST)

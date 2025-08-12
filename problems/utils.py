@@ -6,7 +6,7 @@ import time
 import errno
 import platform
 
-# Language configuration for judge
+#
 LANGUAGE_CONFIG = {
     'c': {
         'source_file': 'main.c',
@@ -34,7 +34,7 @@ LANGUAGE_CONFIG = {
 def find_compiler(compiler_name):
     """Try to find the compiler in common locations"""
     if platform.system() == 'Windows':
-        # Common Windows compiler paths
+
         common_paths = [
             r'C:\MinGW\bin',
             r'C:\mingw64\bin',
@@ -47,8 +47,7 @@ def find_compiler(compiler_name):
             compiler_path = os.path.join(path, f'{compiler_name}.exe')
             if os.path.exists(compiler_path):
                 return compiler_path
-    
-    # Try system PATH
+
     try:
         result = subprocess.run(['which', compiler_name] if platform.system() != 'Windows' else ['where', compiler_name], 
                               capture_output=True, text=True)

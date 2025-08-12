@@ -293,7 +293,7 @@ body {
 /* Buttons */
 .button-group {
     display: flex;
-    gap: 15px;
+    gap: 12px;
     margin-bottom: 20px;
 }
 
@@ -526,6 +526,7 @@ body {
 @media (max-width: 768px) {
     .button-group {
         flex-direction: column;
+        gap: 10px;
     }
     
     .fixed-nav {
@@ -654,4 +655,183 @@ body {
 
 .test-case-status:hover {
     transform: scale(1.05);
+}
+
+/* AI Review Button Styles */
+.btn-ai-review {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: #ffffff;
+    border: none;
+    padding: 12px 20px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+}
+
+.btn-ai-review:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.5);
+}
+
+.btn-ai-review:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+    transform: none;
+}
+
+/* AI Review Popup */
+.ai-review-popup {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.8);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 2000;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.ai-review-popup.show {
+    opacity: 1;
+}
+
+.ai-review-content {
+    background: #1a1a1a;
+    border: 1px solid #404040;
+    border-radius: 12px;
+    width: 90%;
+    max-width: 600px;
+    max-height: 70vh;
+    overflow-y: auto;
+    box-shadow: 0 15px 30px rgba(0,0,0,0.5);
+    transform: scale(0.9);
+    transition: transform 0.3s ease;
+}
+
+.ai-review-popup.show .ai-review-content {
+    transform: scale(1);
+}
+
+.ai-review-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 20px;
+    border-bottom: 1px solid #404040;
+    background: linear-gradient(135deg, #2d2d2d 0%, #404040 100%);
+    border-radius: 12px 12px 0 0;
+}
+
+.ai-review-header h3 {
+    color: #ffffff;
+    font-size: 20px;
+    font-weight: 600;
+    margin: 0;
+}
+
+.ai-review-close {
+    background: #e74c3c;
+    color: #ffffff;
+    border: none;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 18px;
+    font-weight: bold;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.ai-review-close:hover {
+    background: #c0392b;
+    transform: scale(1.1);
+}
+
+.ai-review-body {
+    padding: 20px;
+}
+
+.ai-review-main h4,
+.ai-review-suggestions h4 {
+    color: #00b894;
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: 15px;
+    border-bottom: 2px solid #00b894;
+    padding-bottom: 8px;
+}
+
+.ai-review-text {
+    color: #e0e0e0;
+    font-size: 14px;
+    line-height: 1.6;
+    margin-bottom: 20px;
+    white-space: pre-wrap;
+    background: #2d2d2d;
+    padding: 15px;
+    border-radius: 6px;
+    border-left: 3px solid #00b894;
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.ai-review-suggestions {
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px solid #404040;
+}
+
+.ai-review-suggestions ul {
+    list-style: none;
+    padding: 0;
+}
+
+.ai-review-suggestions li {
+    color: #e0e0e0;
+    font-size: 14px;
+    line-height: 1.6;
+    margin-bottom: 12px;
+    padding: 12px 16px;
+    background: #2d2d2d;
+    border-radius: 6px;
+    border-left: 3px solid #667eea;
+    position: relative;
+}
+
+.ai-review-suggestions li:before {
+    content: "💡";
+    margin-right: 10px;
+    font-size: 16px;
+}
+
+/* Responsive design for AI review popup */
+@media (max-width: 768px) {
+    .ai-review-content {
+        width: 95%;
+        margin: 15px;
+        max-width: 95vw;
+    }
+    
+    .ai-review-header {
+        padding: 12px 15px;
+    }
+    
+    .ai-review-body {
+        padding: 15px;
+    }
+    
+    .ai-review-text {
+        max-height: 250px;
+        padding: 12px;
+    }
 }

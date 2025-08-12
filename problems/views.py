@@ -4,9 +4,11 @@ from django.shortcuts import render, get_object_or_404
 from django.http import JsonResponse
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.cache import never_cache
+from django.views.decorators.csrf import csrf_exempt
 from users.views import session_valid_required
 from .models import Problem, Topic, TestCase, Submission
 from .utils import compile_and_run
+from .ai_review import AICodeReviewer
 
 #  View to show problem list
 @login_required
@@ -195,3 +197,70 @@ def problem_detail(request, problem_id):
         'status': status,
         'test_results': test_results,
     })
+
+
+@csrf_exempt
+@login_required
+@session_valid_required
+def ai_code_review(request):
+    """AI code review endpoint"""
+    if request.method != 'POST':
+        return JsonResponse({'error': 'Only POST requests are allowed'}, status=405)
+    
+    try:
+        # Get data from request
+        data = request.POST
+        code = data.get('code', '')
+        language = data.get('language', '')
+        problem_id = data.get('problem_id', '')
+        
+        if not all([code, language, problem_id]):
+            return JsonResponse({'error': 'Missing required parameters'}, status=400)
+        
+        # Get problem details
+        problem = get_object_or_404(Problem, id=problem_id)
+        
+        # Get test case results from the request
+        test_case_results = []
+        failed_test_cases = []
+        
+        # Parse test case results from the request
+        for key, value in data.items():
+            if key.startswith('test_result_'):
+                parts = value.split('|')
+                if len(parts) >= 4:
+                    test_case_results.append({
+                        'testcase_id': parts[0],
+                        'status': parts[1],
+                        'input_data': parts[2],
+                        'expected_output': parts[3],
+                        'actual_output': parts[4] if len(parts) > 4 else ''
+                    })
+                    
+                    # Add to failed test cases if status is not PASSED
+                    if parts[1] != 'PASSED':
+                        failed_test_cases.append({
+                            'testcase_id': parts[0],
+                            'input_data': parts[2],
+                            'output_data': parts[3],
+                            'actual_output': parts[4] if len(parts) > 4 else ''
+                        })
+        
+        # Initialize AI reviewer and get review
+        ai_reviewer = AICodeReviewer()
+        review_result = ai_reviewer.review_code(
+            code=code,
+            language=language,
+            problem_description=problem.description,
+            test_case_results=test_case_results,
+            failed_test_cases=failed_test_cases
+        )
+        
+        return JsonResponse(review_result)
+        
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'error': str(e),
+            'review': 'An error occurred while generating the AI review. Please try again.'
+        }, status=500)

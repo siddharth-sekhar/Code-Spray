@@ -108,6 +108,7 @@
                 
                 <div class="button-group">
                     <button type="button" class="btn btn-run" onclick="runCode()">Run Sample Tests</button>
+                    <button type="button" class="btn btn-ai-review" onclick="requestAIReview()">🤖 AI Review</button>
                     <button type="submit" class="btn btn-submit">Submit Solution</button>
                 </div>
             </form>
@@ -327,20 +328,23 @@ function displayTestCaseResults(testResults, allPassed) {
     clearTestCaseResults();
     
     // Update test case statuses and show results
-    testResults.forEach((result, index) => {
-        const testCaseIndex = index + 1;
-        const statusElement = document.getElementById(`status-${testCaseIndex}`);
-        const resultElement = document.getElementById(`result-${testCaseIndex}`);
-        const outputElement = document.getElementById(`output-${testCaseIndex}`);
-        
-        if (statusElement && resultElement && outputElement) {
-            // Update status
-            statusElement.textContent = result.status;
-            statusElement.className = `test-case-status status-${result.status.toLowerCase()}`;
+    testResults.forEach((result) => {
+        // Find the test case element by its ID
+        const testCaseElement = document.querySelector(`[data-testcase-id="${result.testcase_id}"]`);
+        if (testCaseElement) {
+            const statusElement = testCaseElement.querySelector('.test-case-status');
+            const resultElement = testCaseElement.querySelector('.test-case-result');
+            const outputElement = testCaseElement.querySelector('.test-case-result .input-output-content');
             
-            // Show result and output
-            resultElement.style.display = 'block';
-            outputElement.textContent = result.output;
+            if (statusElement && resultElement && outputElement) {
+                // Update status
+                statusElement.textContent = result.status;
+                statusElement.className = `test-case-status status-${result.status.toLowerCase()}`;
+                
+                // Show result and output
+                resultElement.style.display = 'block';
+                outputElement.textContent = result.output;
+            }
         }
     });
     
@@ -358,11 +362,10 @@ function displayAllTestCaseResults(testResults, allPassed) {
     // Get all test cases from the page
     const allTestCases = document.querySelectorAll('.test-case');
     
-    allTestCases.forEach((testCase, index) => {
-        const testCaseIndex = index + 1;
-        const statusElement = document.getElementById(`status-${testCaseIndex}`);
-        const resultElement = document.getElementById(`result-${testCaseIndex}`);
-        const outputElement = document.getElementById(`output-${testCaseIndex}`);
+    allTestCases.forEach((testCase) => {
+        const statusElement = testCase.querySelector('.test-case-status');
+        const resultElement = testCase.querySelector('.test-case-result');
+        const outputElement = testCase.querySelector('.test-case-result .input-output-content');
         
         if (statusElement && resultElement && outputElement) {
             // Find corresponding result from testResults
@@ -393,10 +396,9 @@ function displayAllTestCaseResults(testResults, allPassed) {
 // Function to clear test case results
 function clearTestCaseResults() {
     const testCases = document.querySelectorAll('.test-case');
-    testCases.forEach((testCase, index) => {
-        const testCaseIndex = index + 1;
-        const statusElement = document.getElementById(`status-${testCaseIndex}`);
-        const resultElement = document.getElementById(`result-${testCaseIndex}`);
+    testCases.forEach((testCase) => {
+        const statusElement = testCase.querySelector('.test-case-status');
+        const resultElement = testCase.querySelector('.test-case-result');
         
         if (statusElement) {
             statusElement.textContent = 'Pending';
@@ -525,5 +527,127 @@ window.onclick = function(event) {
         }
     }
 }
+
+// AI Review Functions
+// AI review is now always available, no need to show/hide
+
+async function requestAIReview() {
+    const code = document.getElementById('codeEditor').value;
+    const language = document.getElementById('languageSelector').value;
+    
+    if (!code.trim()) {
+        alert('Please write some code first!');
+        return;
+    }
+    
+    // Show loading state
+    const aiButton = document.querySelector('.btn-ai-review');
+    const originalText = aiButton.textContent;
+    aiButton.textContent = '🤖 AI is analyzing...';
+    aiButton.disabled = true;
+    
+    try {
+        // Collect test case results
+        const formData = new FormData();
+        formData.append('code', code);
+        formData.append('language', language);
+        formData.append('problem_id', '{{ problem.id }}');
+        formData.append('csrfmiddlewaretoken', document.querySelector('[name=csrfmiddlewaretoken]').value);
+        
+        // Add test case results
+        const testCases = document.querySelectorAll('.test-case');
+        testCases.forEach((testCase, index) => {
+            const statusElement = testCase.querySelector('.test-case-status');
+            const resultElement = testCase.querySelector('.test-case-result');
+            const outputElement = testCase.querySelector('.test-case-result .input-output-content');
+            
+            if (statusElement && resultElement && outputElement) {
+                const status = statusElement.textContent;
+                const inputData = testCase.querySelector('.input-output-content').textContent;
+                const expectedOutput = testCase.querySelectorAll('.input-output-content')[1].textContent;
+                const actualOutput = outputElement.textContent || '';
+                
+                formData.append(`test_result_${index}`, `${testCase.dataset.testcaseId}|${status}|${inputData}|${expectedOutput}|${actualOutput}`);
+            }
+        });
+        
+        const response = await fetch('{% url "ai_code_review" %}', {
+            method: 'POST',
+            body: formData
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            showAIReviewPopup(result.review, result.suggestions);
+        } else {
+            alert('AI Review Error: ' + (result.error || 'Unknown error'));
+        }
+        
+    } catch (error) {
+        console.error('Error requesting AI review:', error);
+        alert('An error occurred while requesting AI review. Please try again.');
+    } finally {
+        // Restore button state
+        aiButton.textContent = originalText;
+        aiButton.disabled = false;
+    }
+}
+
+function showAIReviewPopup(review, suggestions) {
+    // Remove existing popup if any
+    const existingPopup = document.querySelector('.ai-review-popup');
+    if (existingPopup) {
+        existingPopup.remove();
+    }
+    
+    // Create popup
+    const popup = document.createElement('div');
+    popup.className = 'ai-review-popup';
+    popup.innerHTML = `
+        <div class="ai-review-content">
+            <div class="ai-review-header">
+                <h3>🤖 AI Code Review</h3>
+                <button class="ai-review-close" onclick="closeAIReviewPopup()">&times;</button>
+            </div>
+            <div class="ai-review-body">
+                <div class="ai-review-main">
+                    <h4>Code Analysis</h4>
+                    <div class="ai-review-text">${review}</div>
+                </div>
+                ${suggestions && suggestions.length > 0 ? `
+                <div class="ai-review-suggestions">
+                    <h4>Quick Tips</h4>
+                    <ul>
+                        ${suggestions.map(suggestion => `<li>${suggestion}</li>`).join('')}
+                    </ul>
+                </div>
+                ` : ''}
+            </div>
+        </div>
+    `;
+    
+    // Add to page
+    document.body.appendChild(popup);
+    
+    // Show popup with animation
+    setTimeout(() => popup.classList.add('show'), 10);
+}
+
+function closeAIReviewPopup() {
+    const popup = document.querySelector('.ai-review-popup');
+    if (popup) {
+        popup.classList.remove('show');
+        setTimeout(() => popup.remove(), 300);
+    }
+}
+
+// Close popup when clicking outside
+document.addEventListener('click', function(event) {
+    const popup = document.querySelector('.ai-review-popup');
+    if (popup && !popup.contains(event.target)) {
+        closeAIReviewPopup();
+    }
+});
 </script>
 {% endblock %}
