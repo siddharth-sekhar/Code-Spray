@@ -26,7 +26,7 @@ SECRET_KEY = 'django-insecure-a07w#mz#4hpugqtmi(_hj(pejvv(%53ztt6ovpc)xgnp_7wwz5
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition
@@ -46,6 +46,7 @@ INSTALLED_APPS = [
 # Existing settings...
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',  # For serving static files in production 
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -148,3 +149,4 @@ SESSION_SAVE_EVERY_REQUEST = True
 CACHE_CONTROL = 'no-store, no-cache, must-revalidate, max-age=0'
 LOGIN_REDIRECT_URL = 'dashboard'  # After login go to dashboard
 LOGOUT_REDIRECT_URL = 'login'  # After logout go to login page
+
