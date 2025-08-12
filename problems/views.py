@@ -3,11 +3,15 @@
 from django.shortcuts import render, get_object_or_404
 from django.http import JsonResponse
 from django.contrib.auth.decorators import login_required
+from django.views.decorators.cache import never_cache
+from users.views import session_valid_required
 from .models import Problem, Topic, TestCase, Submission
 from .utils import compile_and_run
 
 #  View to show problem list
 @login_required
+@session_valid_required
+@never_cache
 def problem_list(request):
     topic_filter = request.GET.get('topic')
     topics = Topic.objects.all()
@@ -25,6 +29,8 @@ def problem_list(request):
 
 #  View to show problem details & handle submissions
 @login_required
+@session_valid_required
+@never_cache
 def problem_detail(request, problem_id):
     problem = get_object_or_404(Problem, id=problem_id)
     output = ''
@@ -99,6 +105,7 @@ def problem_detail(request, problem_id):
             else:
                 # Run all test cases for submission
                 all_passed = True
+                test_results = []  # Initialize test results for full submission
                 
                 for testcase in testcases:
                     out, err = compile_and_run(code, language, testcase.input_data)
@@ -111,6 +118,14 @@ def problem_detail(request, problem_id):
                         ]
                         error = "\n".join(error_lines)
                         all_passed = False
+                        # Add failed test case to results
+                        test_results.append({
+                            'testcase_id': testcase.id,
+                            'input_data': testcase.input_data,
+                            'expected_output': testcase.output_data,
+                            'status': 'ERROR',
+                            'output': f"Error: {err}"
+                        })
                         break
                     elif out.strip() != testcase.output_data.strip():
                         error_lines = [
@@ -121,7 +136,24 @@ def problem_detail(request, problem_id):
                         ]
                         error = "\n".join(error_lines)
                         all_passed = False
+                        # Add failed test case to results
+                        test_results.append({
+                            'testcase_id': testcase.id,
+                            'input_data': testcase.input_data,
+                            'expected_output': testcase.output_data,
+                            'status': 'FAILED',
+                            'output': out
+                        })
                         break
+                    else:
+                        # Add passed test case to results
+                        test_results.append({
+                            'testcase_id': testcase.id,
+                            'input_data': testcase.input_data,
+                            'expected_output': testcase.output_data,
+                            'status': 'PASSED',
+                            'output': out
+                        })
                 
                 # Save the submission
                 result = 'AC' if all_passed else 'WA'

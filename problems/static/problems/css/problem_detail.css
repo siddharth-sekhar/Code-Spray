@@ -412,6 +412,58 @@ body {
     gap: 15px;
 }
 
+/* Test Case Result Styles */
+.test-case-result {
+    grid-column: 1 / -1; /* Span full width */
+    margin-top: 15px;
+    padding-top: 15px;
+    border-top: 1px solid #404040;
+}
+
+.test-case-result .input-output-title {
+    color: #00b894;
+    font-weight: 600;
+    margin-bottom: 8px;
+    font-size: 13px;
+}
+
+.test-case-result .input-output-content {
+    background: #0a0a0a;
+    border-radius: 4px;
+    padding: 10px;
+    font-family: 'Courier New', monospace;
+    font-size: 12px;
+    color: #e0e0e0;
+    white-space: pre-wrap;
+    border: 1px solid #404040;
+}
+
+/* Success Message Styles */
+.success-message {
+    background: linear-gradient(135deg, #00b894 0%, #00a085 100%);
+    border-radius: 8px;
+    padding: 20px;
+    margin-top: 20px;
+    border: 1px solid #00b894;
+    text-align: center;
+    animation: slideIn 0.5s ease-out;
+}
+
+.success-title {
+    color: #ffffff;
+    font-size: 20px;
+    font-weight: 700;
+    margin-bottom: 10px;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+}
+
+.success-content {
+    color: #ffffff;
+    font-size: 14px;
+    line-height: 1.5;
+    opacity: 0.95;
+}
+
 /* Output Section */
 .output-title {
     font-weight: 600;
@@ -535,4 +587,71 @@ body {
         opacity: 1;
         transform: translateY(0);
     }
+}
+
+/* Enhanced status styles */
+.status-accepted {
+    background: #00b894;
+    color: #000000;
+}
+
+.status-wrong {
+    background: #e74c3c;
+    color: #ffffff;
+}
+
+.status-error {
+    background: #f39c12;
+    color: #000000;
+}
+
+.status-passed {
+    background: #00b894;
+    color: #000000;
+}
+
+.status-failed {
+    background: #e74c3c;
+    color: #ffffff;
+}
+
+.status-pending {
+    background: #f39c12;
+    color: #000000;
+}
+
+/* Test case result animations */
+.test-case-result {
+    animation: fadeIn 0.3s ease-in;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Enhanced test case styling */
+.test-case {
+    transition: all 0.3s ease;
+}
+
+.test-case:hover {
+    border-color: #00b894;
+    box-shadow: 0 2px 8px rgba(0, 184, 148, 0.2);
+}
+
+/* Status badge enhancements */
+.test-case-status {
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+.test-case-status:hover {
+    transform: scale(1.05);
 }

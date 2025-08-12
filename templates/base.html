@@ -8,6 +8,8 @@
   <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate, max-age=0">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="robots" content="noindex, nofollow">
   <title>{% block title %}Online Judge{% endblock %}</title>
   <style>
     /* Minimal base styles that won't conflict with our custom designs */
@@ -31,5 +33,35 @@
   <div class="content">
     {% block content %}{% endblock %}
   </div>
+  
+  <script>
+    // Global cache prevention and security measures
+    (function() {
+      // Prevent page from being cached
+      if (window.history && window.history.pushState) {
+        window.history.pushState(null, null, window.location.href);
+      }
+      
+      // Clear any cached data on page load
+      if (window.performance && window.performance.navigation.type === window.performance.navigation.TYPE_BACK_FORWARD) {
+        window.location.reload();
+      }
+      
+      // Handle page visibility changes
+      document.addEventListener('visibilitychange', function() {
+        if (document.hidden) {
+          // Page is hidden, clear any sensitive data
+          sessionStorage.removeItem('currentPage');
+        }
+      });
+      
+      // Prevent access to cached pages
+      window.addEventListener('pageshow', function(event) {
+        if (event.persisted) {
+          window.location.reload();
+        }
+      });
+    })();
+  </script>
 </body>
 </html>

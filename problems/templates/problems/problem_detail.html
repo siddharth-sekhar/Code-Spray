@@ -116,7 +116,7 @@
             <div class="test-cases-section">
                 <h3 class="test-cases-title">Test Cases</h3>
                 {% for testcase in problem.testcase_set.all %}
-                <div class="test-case">
+                <div class="test-case" data-testcase-id="{{ testcase.id }}">
                     <div class="test-case-header">
                         <div class="test-case-title">Test Case {{ forloop.counter }}</div>
                         <div class="test-case-status status-pending" id="status-{{ forloop.counter }}">Pending</div>
@@ -129,6 +129,11 @@
                         <div class="input-output">
                             <div class="input-output-title">Expected Output</div>
                             <div class="input-output-content">{{ testcase.output_data }}</div>
+                        </div>
+                        <!-- Add result display area for each test case -->
+                        <div class="test-case-result" id="result-{{ forloop.counter }}" style="display: none;">
+                            <div class="input-output-title">Your Output</div>
+                            <div class="input-output-content" id="output-{{ forloop.counter }}"></div>
                         </div>
                     </div>
                 </div>
@@ -250,6 +255,12 @@ async function runCode() {
         // Display the result
         displayOutput(result.output || '', result.error || '');
         
+        // Display test case results if available
+        if (result.test_results && result.test_results.length > 0) {
+            const allPassed = result.status === 'Sample Tests Passed';
+            displayTestCaseResults(result.test_results, allPassed);
+        }
+        
     } catch (error) {
         console.error('Error running code:', error);
         let errorMessage = 'An error occurred while running the code. Please try again.';
@@ -310,6 +321,127 @@ function displayOutput(output, error) {
     outputSection.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 }
 
+// Function to display test case results inline
+function displayTestCaseResults(testResults, allPassed) {
+    // Clear any previous results
+    clearTestCaseResults();
+    
+    // Update test case statuses and show results
+    testResults.forEach((result, index) => {
+        const testCaseIndex = index + 1;
+        const statusElement = document.getElementById(`status-${testCaseIndex}`);
+        const resultElement = document.getElementById(`result-${testCaseIndex}`);
+        const outputElement = document.getElementById(`output-${testCaseIndex}`);
+        
+        if (statusElement && resultElement && outputElement) {
+            // Update status
+            statusElement.textContent = result.status;
+            statusElement.className = `test-case-status status-${result.status.toLowerCase()}`;
+            
+            // Show result and output
+            resultElement.style.display = 'block';
+            outputElement.textContent = result.output;
+        }
+    });
+    
+    // Show overall result message
+    if (allPassed) {
+        showSuccessMessage();
+    }
+}
+
+// Function to display all test case results (for full submission)
+function displayAllTestCaseResults(testResults, allPassed) {
+    // Clear any previous results
+    clearTestCaseResults();
+    
+    // Get all test cases from the page
+    const allTestCases = document.querySelectorAll('.test-case');
+    
+    allTestCases.forEach((testCase, index) => {
+        const testCaseIndex = index + 1;
+        const statusElement = document.getElementById(`status-${testCaseIndex}`);
+        const resultElement = document.getElementById(`result-${testCaseIndex}`);
+        const outputElement = document.getElementById(`output-${testCaseIndex}`);
+        
+        if (statusElement && resultElement && outputElement) {
+            // Find corresponding result from testResults
+            const result = testResults.find(r => r.testcase_id === parseInt(testCase.dataset.testcaseId));
+            
+            if (result) {
+                // Update status
+                statusElement.textContent = result.status;
+                statusElement.className = `test-case-status status-${result.status.toLowerCase()}`;
+                
+                // Show result and output
+                resultElement.style.display = 'block';
+                outputElement.textContent = result.output;
+            } else {
+                // If no result for this test case, mark as pending
+                statusElement.textContent = 'Pending';
+                statusElement.className = 'test-case-status status-pending';
+            }
+        }
+    });
+    
+    // Show overall result message
+    if (allPassed) {
+        showSuccessMessage();
+    }
+}
+
+// Function to clear test case results
+function clearTestCaseResults() {
+    const testCases = document.querySelectorAll('.test-case');
+    testCases.forEach((testCase, index) => {
+        const testCaseIndex = index + 1;
+        const statusElement = document.getElementById(`status-${testCaseIndex}`);
+        const resultElement = document.getElementById(`result-${testCaseIndex}`);
+        
+        if (statusElement) {
+            statusElement.textContent = 'Pending';
+            statusElement.className = 'test-case-status status-pending';
+        }
+        
+        if (resultElement) {
+            resultElement.style.display = 'none';
+        }
+    });
+}
+
+// Function to show success message inline
+function showSuccessMessage() {
+    const codeEditorSection = document.querySelector('.code-editor-section');
+    
+    // Remove existing success message if any
+    const existingSuccess = document.querySelector('.success-message');
+    if (existingSuccess) {
+        existingSuccess.remove();
+    }
+    
+    // Create success message
+    const successMessage = document.createElement('div');
+    successMessage.className = 'success-message';
+    
+    const successTitle = document.createElement('h3');
+    successTitle.className = 'success-title';
+    successTitle.textContent = '🎉 All Test Cases Passed!';
+    
+    const successContent = document.createElement('div');
+    successContent.className = 'success-content';
+    successContent.textContent = 'Congratulations! Your solution has been accepted and all test cases passed successfully.';
+    
+    successMessage.appendChild(successTitle);
+    successMessage.appendChild(successContent);
+    
+    // Insert after the test cases section
+    const testCasesSection = document.querySelector('.test-cases-section');
+    testCasesSection.parentNode.insertBefore(successMessage, testCasesSection.nextSibling);
+    
+    // Scroll to success message
+    successMessage.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
 // Function to handle solution submission
 async function submitSolution(event) {
     event.preventDefault();
@@ -352,9 +484,9 @@ async function submitSolution(event) {
         
         // Show success message if all tests passed
         if (result.status === 'Accepted') {
-            setTimeout(() => {
-                alert('🎉 Congratulations! Your solution has been accepted!');
-            }, 500);
+            displayAllTestCaseResults(result.test_results, true); // Pass allPassed=true
+        } else {
+            displayAllTestCaseResults(result.test_results, false); // Pass allPassed=false
         }
         
     } catch (error) {
