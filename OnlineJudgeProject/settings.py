@@ -33,6 +33,10 @@ if allowed_hosts:
 else:
     ALLOWED_HOSTS = ['localhost', '127.0.0.1']
 
+# Automatically add Render domain if RENDER environment variable is present
+if os.environ.get('RENDER'):
+    ALLOWED_HOSTS.append('online-judge-project-1-g5im.onrender.com')
+
 
 # Application definition
 
