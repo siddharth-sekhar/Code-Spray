@@ -1,18 +1,41 @@
-# Dockerfile for Django app
+# Dockerfile for Django app with comprehensive compiler support
 FROM python:3.12-slim
 
 ENV PYTHONDONTWRITEBYTECODE 1
 ENV PYTHONUNBUFFERED 1
 
-# Install compilers and interpreters for code execution
-RUN apt-get update && apt-get install -y \
+# Update package list and install essential tools
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+    # Essential build tools
+    build-essential \
+    # C/C++ compilers
     gcc \
     g++ \
-    openjdk-17-jdk \
+    clang \
+    # Java Development Kit
+    default-jdk \
+    # Additional tools for compilation
+    make \
+    cmake \
+    # Utilities
+    wget \
+    curl \
+    unzip \
+    # Clean up
+    && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
 # Set JAVA_HOME environment variable
-ENV JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64
+ENV JAVA_HOME=/usr/lib/jvm/default-java
+ENV PATH="$JAVA_HOME/bin:$PATH"
+
+# Verify installations
+RUN gcc --version && \
+    g++ --version && \
+    javac -version && \
+    java -version && \
+    python --version
 
 WORKDIR /app
 
