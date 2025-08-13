@@ -21,15 +21,15 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-a07w#mz#4hpugqtmi(_hj(pejvv(%53ztt6ovpc)xgnp_7wwz5')
+SECRET_KEY = os.environ.get('SECRET_KEY', 'replace-this-secret-key')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.environ.get('DEBUG', 'False').lower() == 'true'
 
-# Handle ALLOWED_HOSTS more safely
-allowed_hosts = os.environ.get('ALLOWED_HOSTS', 'localhost,127.0.0.1')
+# Allow all hosts on Render, restrict in production as needed
+allowed_hosts = os.environ.get('ALLOWED_HOSTS', '.onrender.com,localhost,127.0.0.1')
 if allowed_hosts:
-    ALLOWED_HOSTS = allowed_hosts.split(',')
+    ALLOWED_HOSTS = [h.strip() for h in allowed_hosts.split(',')]
 else:
     ALLOWED_HOSTS = ['localhost', '127.0.0.1']
 
@@ -162,6 +162,7 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
 
 # Enable WhiteNoise compression and caching
 try:
