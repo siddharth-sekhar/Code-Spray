@@ -5,14 +5,14 @@ from django.http import JsonResponse
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.cache import never_cache
 from django.views.decorators.csrf import csrf_exempt
-from users.views import session_valid_required
+# from users.views import session_valid_required
 from .models import Problem, Topic, TestCase, Submission
 from .utils import compile_and_run
 from .ai_review import AICodeReviewer
 
 #  View to show problem list
 @login_required
-@session_valid_required
+# @session_valid_required
 @never_cache
 def problem_list(request):
     topic_filter = request.GET.get('topic')
@@ -131,72 +131,94 @@ def problem_detail(request, problem_id):
                         status = 'Sample Tests Passed'
                 else:
                     # Run all test cases for submission
+                    print(f"DEBUG: Starting full submission for {len(testcases)} test cases")
                     all_passed = True
                     test_results = []  # Initialize test results for full submission
                     
-                    for testcase in testcases:
-                        out, err = compile_and_run(code, language, testcase.input_data)
-                        if err:
-                            error_lines = [
-                                f"Compilation/Runtime Error",
-                                f"Input: {testcase.input_data}",
-                                f"Error Details:",
-                                f"{err}"
-                            ]
-                            error = "\n".join(error_lines)
-                            all_passed = False
-                            # Add failed test case to results
-                            test_results.append({
-                                'testcase_id': testcase.id,
-                                'input_data': testcase.input_data,
-                                'expected_output': testcase.output_data,
-                                'status': 'ERROR',
-                                'output': f"Error: {err}"
-                            })
-                            break
-                        elif out.strip() != testcase.output_data.strip():
-                            error_lines = [
-                                f"Wrong Answer",
-                                f"Input: {testcase.input_data}",
-                                f"Expected Output: {testcase.output_data}",
-                                f"Your Output: {out}"
-                            ]
-                            error = "\n".join(error_lines)
-                            all_passed = False
-                            # Add failed test case to results
-                            test_results.append({
-                                'testcase_id': testcase.id,
-                                'input_data': testcase.input_data,
-                                'expected_output': testcase.output_data,
-                                'status': 'FAILED',
-                                'output': out
-                            })
-                            break
+                    try:
+                        for i, testcase in enumerate(testcases):
+                            print(f"DEBUG: Processing test case {i+1}/{len(testcases)}")
+                            try:
+                                out, err = compile_and_run(code, language, testcase.input_data)
+                                print(f"DEBUG: Test case {i+1} result - out: {len(str(out)) if out else 0} chars, err: {len(str(err)) if err else 0} chars")
+                            except Exception as compile_error:
+                                print(f"DEBUG: Exception in compile_and_run for test case {i+1}: {str(compile_error)}")
+                                out, err = '', f"Compilation/Runtime Error: {str(compile_error)}"
+                            
+                            if err:
+                                error_lines = [
+                                    f"Compilation/Runtime Error",
+                                    f"Input: {testcase.input_data}",
+                                    f"Error Details:",
+                                    f"{err}"
+                                ]
+                                error = "\n".join(error_lines)
+                                all_passed = False
+                                # Add failed test case to results
+                                test_results.append({
+                                    'testcase_id': testcase.id,
+                                    'input_data': testcase.input_data,
+                                    'expected_output': testcase.output_data,
+                                    'status': 'ERROR',
+                                    'output': f"Error: {err}"
+                                })
+                                break
+                            elif out.strip() != testcase.output_data.strip():
+                                error_lines = [
+                                    f"Wrong Answer",
+                                    f"Input: {testcase.input_data}",
+                                    f"Expected Output: {testcase.output_data}",
+                                    f"Your Output: {out}"
+                                ]
+                                error = "\n".join(error_lines)
+                                all_passed = False
+                                # Add failed test case to results
+                                test_results.append({
+                                    'testcase_id': testcase.id,
+                                    'input_data': testcase.input_data,
+                                    'expected_output': testcase.output_data,
+                                    'status': 'FAILED',
+                                    'output': out
+                                })
+                                break
+                            else:
+                                # Add passed test case to results
+                                test_results.append({
+                                    'testcase_id': testcase.id,
+                                    'input_data': testcase.input_data,
+                                    'expected_output': testcase.output_data,
+                                    'status': 'PASSED',
+                                    'output': out
+                                })
+                        
+                        # Save the submission
+                        result = 'AC' if all_passed else 'WA'
+                        try:
+                            Submission.objects.create(
+                                user=request.user,
+                                problem=problem,
+                                language=language,
+                                code=code,
+                                status=result
+                            )
+                        except Exception as db_error:
+                            print(f"DEBUG: Database error: {str(db_error)}")
+                            # Continue with the response even if DB save fails
+                        
+                        print(f"DEBUG: Full submission completed. All passed: {all_passed}, Test results count: {len(test_results)}")
+                        if all_passed:
+                            output = "All test cases passed! Solution submitted successfully."
+                            status = 'Accepted'
                         else:
-                            # Add passed test case to results
-                            test_results.append({
-                                'testcase_id': testcase.id,
-                                'input_data': testcase.input_data,
-                                'expected_output': testcase.output_data,
-                                'status': 'PASSED',
-                                'output': out
-                            })
-                    
-                    # Save the submission
-                    result = 'AC' if all_passed else 'WA'
-                    Submission.objects.create(
-                        user=request.user,
-                        problem=problem,
-                        language=language,
-                        code=code,
-                        status=result
-                    )
-                    
-                    if all_passed:
-                        output = "All test cases passed! Solution submitted successfully."
-                        status = 'Accepted'
-                    else:
-                        status = 'Wrong Answer'
+                            status = 'Wrong Answer'
+                    except Exception as e:
+                        print(f"DEBUG: Exception during code execution: {str(e)}")
+                        error = f"Server error during code execution: {str(e)}"
+                        status = 'Error'
+                        all_passed = False
+                        # Ensure test_results is properly set even on error
+                        if not test_results:
+                            test_results = []
         
         # Return JSON response for AJAX requests
         if is_ajax:
@@ -214,8 +236,10 @@ def problem_detail(request, problem_id):
                 }
                 
                 # Safely convert test_results to JSON serializable format
+                print(f"DEBUG: Processing {len(test_results)} test results for JSON response")
                 if test_results:
-                    for result in test_results:
+                    for i, result in enumerate(test_results):
+                        print(f"DEBUG: Processing test result {i+1}: {type(result)}")
                         if isinstance(result, dict):
                             response_data['test_results'].append({
                                 k: str(v) if v is not None else '' 
@@ -223,8 +247,10 @@ def problem_detail(request, problem_id):
                             })
                         else:
                             response_data['test_results'].append(str(result))
+                else:
+                    print("DEBUG: No test results to process")
                 
-                print(f"DEBUG: Returning JSON response: {response_data}")
+                print(f"DEBUG: Final JSON response data: {response_data}")
                 return JsonResponse(response_data)
             except Exception as e:
                 print(f"DEBUG: Exception in JSON response: {str(e)}")
@@ -246,7 +272,7 @@ def problem_detail(request, problem_id):
 
 @csrf_exempt
 @login_required
-@session_valid_required
+# @session_valid_required
 def ai_code_review(request):
     """AI code review endpoint"""
     if request.method != 'POST':
