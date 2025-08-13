@@ -33,6 +33,10 @@ if allowed_hosts:
 else:
     ALLOWED_HOSTS = ['localhost', '127.0.0.1']
 
+# Automatically add Render domain if RENDER environment variable is present
+if os.environ.get('RENDER'):
+    ALLOWED_HOSTS.append('online-judge-project-1-g5im.onrender.com')
+
 
 # Application definition
 
@@ -104,6 +108,14 @@ if os.environ.get('DATABASE_URL'):
                 'NAME': BASE_DIR / 'db.sqlite3',
             }
         }
+elif os.environ.get('SQLITE_PATH'):
+    # Docker SQLite database (custom path for volume persistence)
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': os.environ.get('SQLITE_PATH'),
+        }
+    }
 else:
     # Development database (SQLite)
     DATABASES = {
