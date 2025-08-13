@@ -23,9 +23,6 @@ from users import views as user_views
 def health_check(request):
     return HttpResponse("OK", status=200)
 
-def root_view(request):
-    return HttpResponse("Online Judge Project is running!", status=200)
-
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('users/', include('users.urls')),               # Login, Dashboard
@@ -36,5 +33,5 @@ urlpatterns = [
     path('dashboard/', user_views.dashboard, name='dashboard_root'),
 
     path('health/', health_check, name='health_check'),  # Health check endpoint
-    path('', root_view, name='root'),  # Simple root view for debugging
+    path('', RedirectView.as_view(url='/login/', permanent=False), name='root'),  # Redirect root to login page
 ]
