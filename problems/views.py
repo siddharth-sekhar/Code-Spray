@@ -176,12 +176,26 @@ def problem_detail(request, problem_id):
         # Return JSON response for AJAX requests
         if is_ajax:
             try:
-                return JsonResponse({
-                    'output': output,
-                    'error': error,
-                    'status': status,
-                    'test_results': test_results,
-                })
+                # Ensure all data is JSON serializable
+                response_data = {
+                    'output': str(output) if output else '',
+                    'error': str(error) if error else '',
+                    'status': str(status) if status else '',
+                    'test_results': []
+                }
+                
+                # Safely convert test_results to JSON serializable format
+                if test_results:
+                    for result in test_results:
+                        if isinstance(result, dict):
+                            response_data['test_results'].append({
+                                k: str(v) if v is not None else '' 
+                                for k, v in result.items()
+                            })
+                        else:
+                            response_data['test_results'].append(str(result))
+                
+                return JsonResponse(response_data)
             except Exception as e:
                 return JsonResponse({
                     'output': '',

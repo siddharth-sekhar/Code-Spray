@@ -129,11 +129,18 @@ def compile_and_run(code: str, lang: str, input_data: str):
                 input=input_data.encode('utf-8'),
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
-                timeout=5
+                timeout=10  # Increased from 5 to 10 seconds
             )
 
             stdout = run_result.stdout.decode('utf-8', errors='ignore').strip()
             stderr = run_result.stderr.decode('utf-8', errors='ignore').strip()
+            
+            # Limit output size to prevent memory issues
+            max_output_size = 10000  # 10KB limit
+            if len(stdout) > max_output_size:
+                stdout = stdout[:max_output_size] + "\n... (output truncated)"
+            if len(stderr) > max_output_size:
+                stderr = stderr[:max_output_size] + "\n... (error truncated)"
             
             # If there's stderr but no stdout, it might be an error
             if stderr and not stdout:
