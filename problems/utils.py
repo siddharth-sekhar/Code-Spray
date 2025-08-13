@@ -96,7 +96,7 @@ def compile_and_run(code: str, lang: str, input_data: str):
                     cwd=tmpdir,
                     stdout=subprocess.PIPE,
                     stderr=subprocess.PIPE,
-                    timeout=10
+                    timeout=15
                 )
                 if compile_result.returncode != 0:
                     stderr_output = compile_result.stderr.decode('utf-8', errors='ignore')
@@ -129,7 +129,7 @@ def compile_and_run(code: str, lang: str, input_data: str):
                 input=input_data.encode('utf-8'),
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
-                timeout=10  # Increased from 5 to 10 seconds
+                timeout=15  # Increased from 5 to 10 seconds
             )
 
             stdout = run_result.stdout.decode('utf-8', errors='ignore').strip()
