@@ -5,7 +5,7 @@ from django.conf import settings
 class AICodeReviewer:
     def __init__(self):
         # Initialize Google Gemini client
-        api_key = "AIzaSyAsr-bCkbix03MY6fuLCXxQVj2r1cV03Hk"
+        api_key = "AIzaSyDoWsr6Qu54a0FkpR6Z5AQEMpI_Af9MyfE"
         genai.configure(api_key=api_key)
         self.model = genai.GenerativeModel('gemini-2.0-flash-exp')
     
